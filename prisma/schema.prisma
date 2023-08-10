@@ -1,0 +1,105 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id Int @id @default(autoincrement())
+  // For mongodb
+  // id String @id @default(auto()) @map("_id") @db.ObjectId
+  // For mongodb
+
+  name           String?
+  email          String?   @unique
+  emailVerified  DateTime?
+  image          String?
+  hashedPassword String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  favoriteIds    String?   @db.Text
+  // favoriteIds    User_coinflips_COPY[]
+  // For mongodb
+  // favoriteIds String[]  @db.ObjectId
+  // For mongodb
+
+  accounts     Account[]
+  listings     Listing[]
+  reservations Reservation[]
+}
+
+// model User_coinflips_COPY {
+//   id       Int      @id
+//   nodeId   User?    @relation(fields: [userId], references: [id])
+//   position Int?
+//   value    Boolean?
+//   userId   Int?
+// }
+
+model Account {
+  id Int @id @default(autoincrement())
+  // For mongodb
+  // id String @id @default(auto()) @map("_id") @db.ObjectId
+  // For mongodb
+
+  userId            Int     @db.Int
+  // For mongodb
+  // userId         String  @db.ObjectId
+  // For mongodb
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Listing {
+  id Int @id @default(autoincrement())
+  // For mongodb
+  // id String @id @default(auto()) @map("_id") @db.ObjectId
+  // For mongodb
+
+  title         String
+  description   String
+  imageSrc      String
+  createdAt     DateTime @default(now())
+  category      String
+  roomCount     Int
+  bathroomCount Int
+  guestCount    Int
+  locationValue String
+  userId        Int      @db.Int
+  price         Int
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  reservations Reservation[]
+}
+
+model Reservation {
+  id         Int      @id @default(autoincrement())
+  userId     Int      @db.Int
+  listingId  Int      @db.Int
+  startDate  DateTime
+  endDate    DateTime
+  totalPrice Int
+  createdAt  DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  listing Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+}
